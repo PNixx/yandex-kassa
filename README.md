@@ -18,6 +18,8 @@ Or install it yourself as:
 
 ## Usage
 
+	require 'yandex_kassa'
+
 	# Initialize
 	yandex_kassa = YandexKassa::Deposition.new('demo.yamoney.ru:9094', "my.cer", "private.key", "deposit.cer")
 	

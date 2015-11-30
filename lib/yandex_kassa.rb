@@ -122,7 +122,8 @@ module YandexKassa
       signature.verify([@deposit_cert], cert_store, nil, OpenSSL::PKCS7::NOVERIFY)
 
       # Parse xml
-      Nokogiri::XML(signature.data).to_hash
+      hash = Hash.from_xml(signature.data)
+      hash["#{method}Response"]
     end
   end
 end
