@@ -34,11 +34,11 @@ module YandexKassa
     #        agentId: 234,
     #        contract: 'test'
     #     })
-    def test_deposition(params)
-      request('testDeposition', params)
+    def test_deposition(params, payment_params = {})
+      request('testDeposition', params, payment_params)
     end
 
-    # Test Deposition
+    # Make Deposition
     # @link https://tech.yandex.ru/money/doc/payment-solution/payout/payments-docpage/
     #     response = yandex_kassa.make_deposition({
     #        dstAccount: '123455',
@@ -48,8 +48,18 @@ module YandexKassa
     #        agentId: 234,
     #        contract: 'test'
     #     })
-    def make_deposition(params)
-      request('makeDeposition', params)
+    def make_deposition(params, payment_params = {})
+      request('makeDeposition', params, payment_params)
+    end
+
+    # Get account balance
+    # @link https://tech.yandex.ru/money/doc/payment-solution/payout/balance-request-docpage/
+    #     response = yandex_kassa.balance({
+    #        clientOrderId: 123,
+    #        agentId: 234,
+    #     })
+    def balance(params)
+      request('balance', params)
     end
 
     private
@@ -64,7 +74,7 @@ module YandexKassa
     #        agentId: 234,
     #        contract: 'test'
     #     })
-    def request(method, params)
+    def request(method, params, payment_params = {})
 
       # Add params
       default_params = {
@@ -76,6 +86,8 @@ module YandexKassa
       #Setup http request
       uri = URI.parse(@prefix + method)
       http = Net::HTTP.new(uri.host, uri.port)
+      http.open_timeout = 4
+      http.read_timeout = 5
       http.use_ssl = true
       http.cert = @cert
       http.key = @private_key
@@ -83,7 +95,7 @@ module YandexKassa
 
       # Request initialize
       request = Net::HTTP::Post.new(uri.path)
-      request.body = sign_data(xml_header(method, params))
+      request.body = sign_data(xml_header(method, params, payment_params))
       request.content_type = 'application/pkcs7-mime'
 
       # Make request
@@ -104,8 +116,17 @@ module YandexKassa
       OpenSSL::PKCS7::sign(@cert, @private_key, data, [], PKCS7::NOCERTS).to_pem
     end
 
-    def xml_header(method, params)
-      "<?xml version=\"1.0\" encoding=\"UTF-8\"?><#{method}Request " + (params.map {|m| "#{m[0]}=\"#{m[1]}\""}.join(' ')) + '/>'
+    def xml_header(method, params, payment_params = {})
+      xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><#{method}Request "
+      xml += (params.map {|m| "#{m[0]}=\"#{m[1]}\""}.join(' '))
+      if payment_params.present?
+        xml += '>'
+        xml += payment_params.to_xml(root: 'paymentParams', skip_instruct: true, skip_types: true, dasherize: false)
+        xml += "</#{method}Request>"
+      else
+        xml += '/>'
+      end
+      xml
     end
 
     # Response parsing

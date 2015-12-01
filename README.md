@@ -37,5 +37,7 @@ Or install it yourself as:
 	
 	# Make deposition
 	response = yandex_kassa.make_deposition(request_params)
-
+	
+	# Requests with paymentParams
+	response = yandex_kassa.make_deposition(request_params, {pof_offerAccepted: 1, smsPhoneNumber: 79653457676})
 
