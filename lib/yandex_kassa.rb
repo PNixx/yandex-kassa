@@ -6,6 +6,7 @@ module YandexKassa
     include OpenSSL
 
     attr_accessor :agent_id
+    attr_accessor :debug
 
     # Create a new instance
     #
@@ -100,6 +101,12 @@ module YandexKassa
 
       # Make request
       response = http.request(request)
+
+      if debug
+        Rails.logger.debug 'response:'
+        Rails.logger.debug response
+        Rails.logger.debug response.body
+      end
 
       # Parsing
       parse_response(method, response.body)
